@@ -41,6 +41,7 @@ def main():
   token_split_texts = []
   for text in character_split_texts:
     token_split_texts += token_splitter.split_text(text)
+  print(f"Split documents into {len(token_split_texts)} chunks")
 
   embedding_function = SentenceTransformerEmbeddingFunction()
 
@@ -94,7 +95,7 @@ def main():
     prompt = (
       "You are an assistant for question-answering tasks. Use the following pieces of "
       "retrieved context to answer the question. If you don't know the answer, say that you "
-      "don't know."
+      "don't know. Be detailed in your answer. "
       "\n\nContext:\n" + context + "\n\nQuestion:\n" + question
     )
 
@@ -120,6 +121,7 @@ def main():
   print("==== Hypothetical Answer ====")
   print(hypothetical_answer)
   print("==== Actual Answer ====")
+  print("#######################")
   print(answer)
   
   embeddings = chroma_collection.get(include=["embeddings"])["embeddings"]
