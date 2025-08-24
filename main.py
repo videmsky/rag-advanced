@@ -151,7 +151,7 @@ def main():
   # Get all embeddings from the collection for visualization
   embeddings = chroma_collection.get(include=["embeddings"])["embeddings"]
   # Fit UMAP transformer for dimensionality reduction to 2D
-  umap_transform = umap.UMAP(random_state=0, transform_seed=0).fit(embeddings)
+  umap_transform = umap.UMAP(transform_seed=0).fit(embeddings)
   # Project all document embeddings to 2D space
   projected_dataset_embeddings = project_embeddings(embeddings, umap_transform)
 
@@ -180,6 +180,7 @@ def main():
     projected_dataset_embeddings[:, 1],
     s=10,
     color="gray",
+    label="All Documents"
   )
   # Highlight retrieved documents with green circles
   plt.scatter(
@@ -188,6 +189,7 @@ def main():
     s=100,
     facecolors="none",
     edgecolors="g",
+    label="Retrieved Documents"
   )
   # Mark original query with red X
   plt.scatter(
@@ -196,6 +198,7 @@ def main():
     s=150,
     marker="X",
     color="r",
+    label="Original Query"
   )
   # Mark augmented query with orange X
   plt.scatter(
@@ -204,12 +207,15 @@ def main():
     s=150,
     marker="X",
     color="orange",
+    label="Augmented Query"
   )
 
+  # Add legend to the plot
+  plt.legend(loc='upper right', fontsize='small', framealpha=0.9)
+  
   # Configure plot appearance and display
-  plt.gca().set_aspect("equal", "datalim")
+  plt.axis("equal")
   plt.title(f"{original_query}")
-  plt.axis("off")
   plt.show()  # display the plot
 
 if __name__ == "__main__":
