@@ -14,6 +14,8 @@ import chromadb
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 # Matplotlib for plotting embeddings visualization
 import matplotlib.pyplot as plt
+# DateTime for timestamps
+from datetime import datetime
 
 # LangChain text splitters for document chunking
 from langchain.text_splitter import (
@@ -22,6 +24,7 @@ from langchain.text_splitter import (
 )
 
 def main():
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ✓ Loading environment variables...")
   # Load environment variables from .env file
   load_dotenv()
 
@@ -30,16 +33,22 @@ def main():
   if mistral_api_key is None:
     raise ValueError("MISTRAL_API_KEY environment variable is not set.")
 
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ✓ Initializing Mistral client...")
   # Initialize Mistral client with API key
   client = Mistral(api_key=mistral_api_key)
 
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚙ Loading PDF document...")
   # Read PDF document and extract text from all pages
   reader = PdfReader("data/NVIDIA-2025-Annual-Report.pdf")
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ✓ Loading PDF: {len(reader.pages)} pages found")
+  
   pdf_texts = [p.extract_text().strip() for p in reader.pages]
 
   # Filter out empty strings from extracted text
   pdf_texts = [text for text in pdf_texts if text]
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ✓ Extracted text from {len(pdf_texts)} pages")
 
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚙ Splitting text into chunks...")
   # Split text into smaller chunks using character-based splitter
   # Uses hierarchical separators: paragraphs -> sentences -> words -> characters
   character_splitter = RecursiveCharacterTextSplitter(
@@ -54,8 +63,9 @@ def main():
   token_split_texts = []
   for text in character_split_texts:
     token_split_texts += token_splitter.split_text(text)
-  print(f"Split documents into {len(token_split_texts)} chunks")
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ✓ Split documents into {len(token_split_texts)} chunks")
 
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚙ Setting up vector database...")
   # Initialize sentence transformer embedding function
   embedding_function = SentenceTransformerEmbeddingFunction()
 
@@ -69,6 +79,7 @@ def main():
   ids = [str(i) for i in range(len(token_split_texts))]
   chroma_collection.add(ids=ids, documents=token_split_texts)
   chroma_collection.count()
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ✓ Stored {len(token_split_texts)} document chunks in vector database")
 
   # Sample query for testing (not used in main pipeline)
   query = "What was the total revenue for the year?"
@@ -88,6 +99,7 @@ def main():
       },
     ]
 
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚙ Making API call to Mistral for query augmentation...")
     # Generate hypothetical answer using Mistral model
     response = client.chat.complete(
       model=model,
@@ -98,17 +110,21 @@ def main():
   
   # Main query to be answered by the RAG system
   original_query = "What was the total profit for the year, and how does it compare to the previous year?"
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚙ Generating hypothetical answer for query enhancement...")
   # Generate hypothetical answer to improve retrieval (HyDE technique)
   hypothetical_answer = augment_query_generated(original_query)
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ✓ Query enhanced with hypothetical answer")
 
   # Combine original query with hypothetical answer for better semantic search
   joint_query = f"{original_query} {hypothetical_answer}"
 
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚙ Searching for relevant documents...")
   # Query vector database with augmented query to retrieve relevant documents
   results = chroma_collection.query(
     query_texts=joint_query, n_results=5, include=["documents", "embeddings"]
   )
   retrieved_documents = results["documents"][0] # type: ignore
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ✓ Retrieved {len(retrieved_documents)} relevant document chunks")
 
   # Function to generate final answer using retrieved context
   def generate_response(question, relevant_chunks):
@@ -121,6 +137,7 @@ def main():
       "\n\nContext:\n" + context + "\n\nQuestion:\n" + question
     )
 
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚙ Making API call to Mistral for final answer generation...")
     # Generate final answer using context and question
     response = client.chat.complete(
       model="ministral-8b-latest",
@@ -138,6 +155,7 @@ def main():
     answer = response.choices[0].message.content
     return answer
   
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚙ Generating final answer...")
   # Generate and display the final answer
   answer = generate_response(original_query, retrieved_documents)
   print("==== Question ====")
@@ -148,8 +166,10 @@ def main():
   print("#######################")
   print(answer)
   
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚙ Preparing embeddings visualization...")
   # Get all embeddings from the collection for visualization
   embeddings = chroma_collection.get(include=["embeddings"])["embeddings"]
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚙ Fitting UMAP transformer...")
   # Fit UMAP transformer for dimensionality reduction to 2D
   umap_transform = umap.UMAP(transform_seed=0).fit(embeddings)
   # Project all document embeddings to 2D space
@@ -171,6 +191,7 @@ def main():
     retrieved_embeddings, umap_transform
   )
 
+  print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚙ Creating visualization plot...")
   # Create visualization of embeddings in 2D space
   plt.figure()
 
