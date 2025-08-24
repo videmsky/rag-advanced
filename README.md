@@ -59,7 +59,7 @@ This will:
 
 ### Customizing Queries
 
-Edit the `original_query` variable in `main.py:81` to ask different questions:
+Edit the `original_query` variable in `main.py:112` to ask different questions:
 ```python
 original_query = "What was the total profit for the year, and how does it compare to the previous year?"
 ```
@@ -67,7 +67,7 @@ original_query = "What was the total profit for the year, and how does it compar
 ### Adding Your Own Documents
 
 1. Place PDF files in the `data/` directory
-2. Update the file path in `main.py:26`:
+2. Update the file path in `main.py:42`:
 ```python
 reader = PdfReader("data/your-document.pdf")
 ```
@@ -80,7 +80,10 @@ reader = PdfReader("data/your-document.pdf")
 ├── main.py                         # Main RAG pipeline
 ├── helper_utils.py                 # Utility functions
 ├── .env.example                    # Environment variables template
+├── .python-version                 # Python version specification
+├── AGENTS.md                       # Guidelines for AI coding agents
 ├── pyproject.toml                  # Project dependencies
+├── uv.lock                         # Dependency lock file
 └── README.md                       # This file
 ```
 
@@ -105,3 +108,5 @@ reader = PdfReader("data/your-document.pdf")
 - Ensure your Mistral API key is valid and has sufficient credits
 - Check that PDF files are readable and not encrypted
 - Verify Python version compatibility (>=3.13 required)
+- If you encounter import errors, run `uv sync` to install all dependencies
+- For tokenizer warnings, set `TOKENIZERS_PARALLELISM=false` in your environment
