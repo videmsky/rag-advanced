@@ -1,20 +1,14 @@
-# Import utilities for embeddings and text processing
 from helper_utils import project_embeddings, word_wrap
-# PDF processing library
 from pypdf import PdfReader
 import os
-# Mistral AI client for language model interactions
 from mistralai import Mistral
-# Environment variable loading
 from dotenv import load_dotenv
 # UMAP for dimensionality reduction and visualization
 import umap
-# ChromaDB for vector database operations
 import chromadb
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 # Matplotlib for plotting embeddings visualization
 import matplotlib.pyplot as plt
-# DateTime for timestamps
 from datetime import datetime
 
 # LangChain text splitters for document chunking
@@ -82,7 +76,7 @@ def main():
   print(f"[{datetime.now().strftime('%H:%M:%S')}] ✓ Stored {len(token_split_texts)} document chunks in vector database")
 
   # Sample query for testing (not used in main pipeline)
-  query = "What was the total revenue for the year?"
+  # query = "What was the total revenue for the year?"
 
   # Function to generate hypothetical answers for query augmentation
   def augment_query_generated(query, model="ministral-8b-latest"):
@@ -157,7 +151,8 @@ def main():
   
   print(f"[{datetime.now().strftime('%H:%M:%S')}] ⚙ Generating final answer...")
   # Generate and display the final answer
-  answer = generate_response(original_query, retrieved_documents)
+  answer = generate_response(joint_query, retrieved_documents)
+  
   print("==== Question ====")
   print(f"Oringal Query: {original_query}")
   print("==== Hypothetical Answer ====")
